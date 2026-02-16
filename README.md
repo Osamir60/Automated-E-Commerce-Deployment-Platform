@@ -1,20 +1,27 @@
-Automated-E-Commerce-Deployment-Platform
+# Automated-E-Commerce-Deployment-Platform-
 
-Google Drive
-https://drive.google.com/drive/folders/1VMsbnK2TJbNc5xRhKNxkHSfu6Rpkfba8?usp=sharing
+## Google Drive
 
-Team members
+[Project Files](https://drive.google.com/drive/folders/1VMsbnK2TJbNc5xRhKNxkHSfu6Rpkfba8?usp=sharing)
 
-Omar Samir (team lead) 
 
-Momen Ahmed 
+---
 
-Ahmed Ashraf 
+## Team Members
+- Omar Samir Team Lead
+- Momen Ahmed 
+- Ahmed Ashraf 
+- Ahmed Emad
+- Ahmed Fahmy
+- Mostafa Anwar
 
-Ahmed Emad
+---
 
-Ahmed Fahmy
+## Plan
 
-Mostafa Anwar
-
-Plan
+| Period | Time in Days | Task & Deliverables |
+|--------|--------------|---------------------|
+| Phase 1 | 7 Days | Version Control & AWS Foundations |
+|        |        | - Setup the base Git repository for code and scripts (Deliverable 9) |
+| Phase 2 | 10 Days | Docker & CI/CD Setup |
+| Phase 3 | 14 Days | Kubernetes Deployment |
