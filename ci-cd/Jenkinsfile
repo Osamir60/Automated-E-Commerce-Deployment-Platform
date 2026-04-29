@@ -1,0 +1,112 @@
+pipeline {
+    agent any
+
+    environment {
+        REGISTRY = "ghcr.io"
+        IMAGE_NAME = "mostafaahmed-eng/ecommerce-deploy"
+        TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/mostafaahmed-eng/ecommerce-deploy.git'
+            }
+        }
+
+        stage('Build Images (Parallel)') {
+            steps {
+                script {
+                    def services = ['frontend', 'backend', 'payment', 'search', 'cart', 'product', 'api']
+
+                    def builds = services.collectEntries { svc ->
+                        ["build-${svc}": {
+                            sh """
+                                docker build \
+                                -t ${REGISTRY}/${IMAGE_NAME}/${svc}:${TAG} \
+                                -t ${REGISTRY}/${IMAGE_NAME}/${svc}:latest \
+                                ./services/${svc}
+                            """
+                        }]
+                    }
+
+                    parallel builds
+                }
+            }
+        }
+
+        stage('Login to GHCR') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'ghcr-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh 'echo $PASS | docker login ghcr.io -u $USER --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Images (Parallel)') {
+            steps {
+                script {
+                    def services = ['frontend', 'backend', 'payment', 'search', 'cart', 'product', 'api']
+
+                    def pushes = services.collectEntries { svc ->
+                        ["push-${svc}": {
+                            sh """
+                                docker push ${REGISTRY}/${IMAGE_NAME}/${svc}:${TAG}
+                                docker push ${REGISTRY}/${IMAGE_NAME}/${svc}:latest
+                            """
+                        }]
+                    }
+
+                    parallel pushes
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    script {
+                        def services = ['frontend', 'backend', 'payment', 'search', 'cart', 'product', 'api']
+
+                        sh '''
+                            kubectl --kubeconfig=$KUBECONFIG apply -f infrastructure/k8s/base/
+                        '''
+
+                        services.each { svc ->
+                            sh """
+                                kubectl --kubeconfig=$KUBECONFIG set image deployment/${svc} ${svc}=${REGISTRY}/${IMAGE_NAME}/${svc}:${TAG} -n ecommerce
+                            """
+                        }
+
+                        services.each { svc ->
+                            sh """
+                                kubectl --kubeconfig=$KUBECONFIG rollout status deployment/${svc} -n ecommerce --timeout=120s
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "SUCCESS: All services built, pushed, and deployed with tag ${TAG}"
+        }
+
+        failure {
+            echo "FAILED: Rolling back deployments..."
+
+            script {
+                def services = ['frontend', 'backend', 'payment', 'search', 'cart', 'product', 'api']
+
+                services.each { svc ->
+                    sh """
+                        kubectl rollout undo deployment/${svc} -n ecommerce || true
+                    """
+                }
+            }
+        }
+    }
+}
