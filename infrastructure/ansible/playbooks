@@ -1,0 +1,114 @@
+---
+- name: Setup Docker
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Enable & Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+# ------------------------------------------------------
+
+- name: Setup Kubernetes Master
+  hosts: k8s_master
+  become: yes
+
+  tasks:
+    - name: Install dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+        state: present
+        update_cache: yes
+
+    - name: Add Kubernetes repo
+      shell: |
+        curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+        echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+
+    - name: Install Kubernetes tools
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+        update_cache: yes
+
+    - name: Check if cluster already initialized
+      stat:
+        path: /etc/kubernetes/admin.conf
+      register: k8s_init
+
+    - name: Initialize cluster
+      command: kubeadm init --pod-network-cidr=10.244.0.0/16
+      when: not k8s_init.stat.exists
+
+    - name: Create .kube directory
+      file:
+        path: /home/{{ ansible_user }}/.kube
+        state: directory
+        owner: "{{ ansible_user }}"
+
+    - name: Copy kubeconfig
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/{{ ansible_user }}/.kube/config
+        remote_src: yes
+        owner: "{{ ansible_user }}"
+
+    - name: Install Calico network
+      command: kubectl apply -f https://docs.projectcalico.org/v3.25/manifests/calico.yaml
+      environment:
+        KUBECONFIG: /home/{{ ansible_user }}/.kube/config
+
+    - name: Install NGINX Ingress
+      command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+      environment:
+        KUBECONFIG: /home/{{ ansible_user }}/.kube/config
+
+# ------------------------------------------------------
+
+- name: Deploy E-Commerce
+  hosts: k8s_master
+
+  tasks:
+    - name: Clone project repo
+      git:
+        repo: https://github.com/mostafaahmed-eng/ecommerce-deploy.git
+        dest: /tmp/ecommerce
+
+    - name: Create namespace (safe)
+      command: kubectl create namespace ecommerce
+      ignore_errors: yes
+      environment:
+        KUBECONFIG: /home/{{ ansible_user }}/.kube/config
+
+    - name: Apply Kubernetes manifests
+      command: kubectl apply -f /tmp/ecommerce/infrastructure/k8s/
+      environment:
+        KUBECONFIG: /home/{{ ansible_user }}/.kube/config
+
+    - name: Wait for deployments
+      command: >
+        kubectl wait --for=condition=available deployment
+        --all -n ecommerce --timeout=300s
+      environment:
+        KUBECONFIG: /home/{{ ansible_user }}/.kube/config
