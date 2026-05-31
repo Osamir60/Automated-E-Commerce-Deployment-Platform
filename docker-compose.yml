@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: ecom_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ecom_network
+
+  product-service:
+    build: ./product-service
+    container_name: ecom_product_service
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - MONGO_URI=mongodb://mongodb:27017/ecom_product
+    depends_on:
+      - mongodb
+    networks:
+      - ecom_network
+
+  search-service:
+    build: ./search-service
+    container_name: ecom_search_service
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - MONGO_URI=mongodb://mongodb:27017/ecom_search
+    depends_on:
+      - mongodb
+    networks:
+      - ecom_network
+
+  payment-service:
+    build: ./payment-service
+    container_name: ecom_payment_service
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - MONGO_URI=mongodb://mongodb:27017/ecom_payment
+    depends_on:
+      - mongodb
+    networks:
+      - ecom_network
+
+  email-service:
+    build: ./email-service
+    container_name: ecom_email_service
+    ports:
+      - "5004:5004"
+    environment:
+      - PORT=5004
+      - MONGO_URI=mongodb://mongodb:27017/ecom_email
+    depends_on:
+      - mongodb
+    networks:
+      - ecom_network
+
+  cart-service:
+    build: ./cart-service
+    container_name: ecom_cart_service
+    ports:
+      - "5005:5005"
+    environment:
+      - PORT=5005
+      - MONGO_URI=mongodb://mongodb:27017/ecom_cart
+    depends_on:
+      - mongodb
+    networks:
+      - ecom_network
+
+  frontend:
+    build: ./frontend
+    container_name: ecom_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_PRODUCT_SERVICE_URL=http://localhost:5001
+      - VITE_SEARCH_SERVICE_URL=http://localhost:5002
+      - VITE_PAYMENT_SERVICE_URL=http://localhost:5003
+      - VITE_EMAIL_SERVICE_URL=http://localhost:5004
+      - VITE_CART_SERVICE_URL=http://localhost:5005
+    depends_on:
+      - product-service
+      - search-service
+      - payment-service
+      - email-service
+      - cart-service
+    networks:
+      - ecom_network
+    # For hot reloading during dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+networks:
+  ecom_network:
+    driver: bridge
+
+volumes:
+  mongo_data:
