@@ -8,35 +8,35 @@ spec:
   rules:
   - http:
       paths:
-      - path: /api/product(/|$)(.*)
+      - path: /api/product
         pathType: Prefix
         backend:
           service:
             name: product-service
             port:
               number: 5001
-      - path: /api/search(/|$)(.*)
+      - path: /api/search
         pathType: Prefix
         backend:
           service:
             name: search-service
             port:
               number: 5002
-      - path: /api/payment(/|$)(.*)
+      - path: /api/payment
         pathType: Prefix
         backend:
           service:
             name: payment-service
             port:
               number: 5003
-      - path: /api/email(/|$)(.*)
+      - path: /api/email
         pathType: Prefix
         backend:
           service:
             name: email-service
             port:
               number: 5004
-      - path: /api/cart(/|$)(.*)
+      - path: /api/cart
         pathType: Prefix
         backend:
           service:
