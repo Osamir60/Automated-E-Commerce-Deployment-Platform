@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+const api = express.Router();
 app.use(cors());
 app.use(express.json());
 
@@ -11,11 +12,11 @@ const PORT = process.env.PORT || 5005;
 // In-memory cart store
 let cart = [];
 
-app.get('/cart', (req, res) => {
+api.get('/cart', (req, res) => {
   res.json(cart);
 });
 
-app.post('/cart', (req, res) => {
+api.post('/cart', (req, res) => {
   const { productId, name, price, image } = req.body;
   
   const existingItem = cart.find(item => item.productId === productId);
@@ -35,17 +36,21 @@ app.post('/cart', (req, res) => {
   res.status(201).json(cart);
 });
 
-app.delete('/cart/:id', (req, res) => {
+api.delete('/cart/:id', (req, res) => {
   const itemId = req.params.id;
   cart = cart.filter(item => item.id !== itemId);
   res.json(cart);
 });
 
-app.delete('/cart', (req, res) => {
+api.delete('/cart', (req, res) => {
   cart = []; // clear cart
   res.json(cart);
 });
 
+app.use('/api/cart', api);
+app.use('/', api);
+
 app.listen(PORT, () => {
   console.log(`Cart Service running on port ${PORT}`);
 });
+

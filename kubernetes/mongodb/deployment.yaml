@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: ecom
   name: mongodb
 spec:
   replicas: 1
@@ -12,6 +13,8 @@ spec:
       labels:
         app: mongodb
     spec:
+      imagePullSecrets:
+        - name: ecr-cred
       containers:
         - name: mongodb
           image: mongo:latest

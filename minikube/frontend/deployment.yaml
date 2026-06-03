@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ecomerrce2-frontend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5173
+          env:
+
+            - name: VITE_PRODUCT_SERVICE_URL
+              value: "http://<MINIKUBE_IP>:30001"
+            - name: VITE_SEARCH_SERVICE_URL
+              value: "http://<MINIKUBE_IP>:30002"
+            - name: VITE_PAYMENT_SERVICE_URL
+              value: "http://<MINIKUBE_IP>:30003"
+            - name: VITE_EMAIL_SERVICE_URL
+              value: "http://<MINIKUBE_IP>:30004"
+            - name: VITE_CART_SERVICE_URL
+              value: "http://<MINIKUBE_IP>:30005"

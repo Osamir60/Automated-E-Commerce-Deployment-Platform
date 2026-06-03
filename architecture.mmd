@@ -1,0 +1,88 @@
+graph TD
+    %% Styling
+    classDef aws fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:black;
+    classDef k8s fill:#326CE5,stroke:#fff,stroke-width:2px,color:white;
+    classDef db fill:#336791,stroke:#fff,stroke-width:2px,color:white;
+    classDef cicd fill:#2088FF,stroke:#fff,stroke-width:2px,color:white;
+    classDef monitor fill:#E6522C,stroke:#fff,stroke-width:2px,color:white;
+    classDef frontend fill:#61DAFB,stroke:#000,stroke-width:2px,color:black;
+    classDef backend fill:#4CAF50,stroke:#fff,stroke-width:2px,color:white;
+
+    %% User
+    User(("🧑‍💻 User / Client"))
+
+    %% AWS Cloud Environment
+    subgraph AWS_Cloud ["☁️ AWS Cloud Infrastructure"]
+        
+        %% Kubernetes Cluster
+        subgraph EKS_Cluster ["⚙️ Amazon EKS (Kubernetes Cluster)"]
+            
+            Ingress["🌐 Ingress Controller (Routing)"]:::k8s
+            
+            subgraph Microservices ["📦 Microservices"]
+                Frontend["💻 Frontend (React/Vite)"]:::frontend
+                ProductSvc["🛍️ Product Service (Node.js)"]:::backend
+                CartSvc["🛒 Cart Service (Node.js)"]:::backend
+                PaymentSvc["💳 Payment Service (Node.js)"]:::backend
+                SearchSvc["🔍 Search Service (Node.js)"]:::backend
+                EmailSvc["📧 Email Service (Node.js)"]:::backend
+            end
+            
+            MongoDB[("🍃 MongoDB (Cart/Search Data)")]:::db
+        end
+        
+        %% AWS Managed Services
+        subgraph AWS_Managed ["🔒 AWS Managed Services"]
+            RDS[("🐘 Amazon RDS (PostgreSQL)")]:::aws
+            S3["🪣 Amazon S3 (Product Images)"]:::aws
+            ECR["🐳 Amazon ECR (Docker Images)"]:::aws
+        end
+
+    end
+
+    %% CI/CD & GitOps
+    subgraph DevOps ["🚀 DevOps & GitOps"]
+        GitHub["🐙 GitHub Repository"]:::cicd
+        Actions["⚙️ GitHub Actions (CI Build)"]:::cicd
+        ArgoCD["🐙 Argo CD (CD Sync)"]:::cicd
+    end
+
+    %% Monitoring Stack
+    subgraph Observability ["📊 Monitoring & Observability"]
+        Prometheus["🔥 Prometheus (Metrics)"]:::monitor
+        Grafana["📈 Grafana (Dashboards)"]:::monitor
+    end
+
+    %% Relationships & Data Flow
+    
+    %% User Traffic
+    User -->|HTTP/HTTPS| Ingress
+    Ingress --> Frontend
+    Ingress --> ProductSvc
+    Ingress --> CartSvc
+    Ingress --> PaymentSvc
+    Ingress --> SearchSvc
+    
+    %% Internal Microservice Traffic
+    Frontend -.->|API Calls| ProductSvc
+    Frontend -.->|API Calls| CartSvc
+    Frontend -.->|API Calls| PaymentSvc
+    Frontend -.->|API Calls| SearchSvc
+    
+    %% Database & Storage Connections
+    ProductSvc -->|Read/Write| RDS
+    PaymentSvc -->|Transactions| RDS
+    ProductSvc -->|Upload Images| S3
+    CartSvc -->|Session Data| MongoDB
+    SearchSvc -->|Cache/Search| MongoDB
+    
+    %% CI/CD Pipeline Flow
+    GitHub -->|1. Code Push| Actions
+    Actions -->|2. Build & Push Image| ECR
+    ArgoCD -->|3. Watch Manifests| GitHub
+    ArgoCD -->|4. Auto-Deploy| EKS_Cluster
+    EKS_Cluster -->|5. Pull Latest Image| ECR
+    
+    %% Monitoring Flow
+    Prometheus -.->|Scrape Pod Data| EKS_Cluster
+    Grafana -->|Query Metrics| Prometheus

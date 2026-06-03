@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: ecom
   name: product-service
 spec:
   replicas: 1
@@ -12,14 +13,39 @@ spec:
       labels:
         app: product-service
     spec:
+      imagePullSecrets:
+        - name: ecr-cred
       containers:
         - name: product-service
-          image: 183631346881.dkr.ecr.us-east-1.amazonaws.com/ecomerrce2-product-service:latest
+          image: <YOUR_AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ecomerrce2-product-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5001
           env:
             - name: PORT
               value: "5001"
-            - name: MONGO_URI
-              value: "mongodb://mongodb:27017/ecom_product"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecom-secrets
+                  key: DATABASE_URL
+            - name: AWS_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: ecom-secrets
+                  key: AWS_REGION
+            - name: AWS_S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: ecom-secrets
+                  key: AWS_S3_BUCKET
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ecom-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecom-secrets
+                  key: AWS_SECRET_ACCESS_KEY

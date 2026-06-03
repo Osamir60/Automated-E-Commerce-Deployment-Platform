@@ -1,13 +1,17 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: ecom_mongodb
+  postgres:
+    image: postgres:15
+    container_name: ecom_postgres
     ports:
-      - "27017:27017"
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ecom
     volumes:
-      - mongo_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - ecom_network
 
@@ -18,9 +22,14 @@ services:
       - "5001:5001"
     environment:
       - PORT=5001
-      - MONGO_URI=mongodb://mongodb:27017/ecom_product
+      - DATABASE_URL=postgres://postgres:admin123456@YOUR_DB_ENDPOINT:5432/ecom
+      - AWS_REGION=us-east-1
+      - AWS_S3_BUCKET=YOUR_S3_BUCKET_NAME
+      # IMPORTANT: To allow image uploads, uncomment the next two lines and add your AWS keys:
+      - AWS_ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY
     depends_on:
-      - mongodb
+      - postgres
     networks:
       - ecom_network
 
@@ -33,7 +42,7 @@ services:
       - PORT=5002
       - MONGO_URI=mongodb://mongodb:27017/ecom_search
     depends_on:
-      - mongodb
+      - postgres
     networks:
       - ecom_network
 
@@ -46,7 +55,7 @@ services:
       - PORT=5003
       - MONGO_URI=mongodb://mongodb:27017/ecom_payment
     depends_on:
-      - mongodb
+      - postgres
     networks:
       - ecom_network
 
@@ -57,9 +66,9 @@ services:
       - "5004:5004"
     environment:
       - PORT=5004
-      - MONGO_URI=mongodb://mongodb:27017/ecom_email
+      - DATABASE_URL=postgres://postgres:admin123456@YOUR_DB_ENDPOINT:5432/ecom
     depends_on:
-      - mongodb
+      - postgres
     networks:
       - ecom_network
 
@@ -72,7 +81,7 @@ services:
       - PORT=5005
       - MONGO_URI=mongodb://mongodb:27017/ecom_cart
     depends_on:
-      - mongodb
+      - postgres
     networks:
       - ecom_network
 
@@ -105,4 +114,4 @@ networks:
     driver: bridge
 
 volumes:
-  mongo_data:
+  postgres_data:

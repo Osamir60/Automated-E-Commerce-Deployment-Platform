@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: ecom
   name: email-service
 spec:
   replicas: 1
@@ -12,14 +13,19 @@ spec:
       labels:
         app: email-service
     spec:
+      imagePullSecrets:
+        - name: ecr-cred
       containers:
         - name: email-service
-          image: 183631346881.dkr.ecr.us-east-1.amazonaws.com/ecomerrce2-email-service:latest
+          image: <YOUR_AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ecomerrce2-email-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5004
           env:
             - name: PORT
               value: "5004"
-            - name: MONGO_URI
-              value: "mongodb://mongodb:27017/ecom_email"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecom-secrets
+                  key: DATABASE_URL
