@@ -1,4 +1,4 @@
-$ecr = "183631346881.dkr.ecr.us-east-1.amazonaws.com"
+$ecr = "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com"
 $images = @("frontend", "product-service", "cart-service", "search-service", "payment-service", "email-service")
 
 Write-Host "Building new Docker images..."
