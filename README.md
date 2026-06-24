@@ -1,74 +1,183 @@
-# Microservices E-Commerce Platform on AWS EKS
+Automated-E-Commerce-Deployment-Platform-
 
-This repository contains a full-stack, cloud-native E-commerce platform built with a microservices architecture. It demonstrates modern DevOps practices including Infrastructure as Code (IaC), GitOps, CI/CD, and Kubernetes orchestration.
+- Plan
 
-## 🏗️ Architecture Overview
+🚀 Project Roadmap – Automated E-Commerce Deployment Platform
 
-The system is composed of several independent microservices communicating with each other and backed by robust databases. It is designed to be deployed on Amazon EKS (Elastic Kubernetes Service).
+Total Phases: 10
+Project Type: Cloud-Native DevOps Automation Project
 
-![Architecture Diagram](./architecture.png)
+Phase 1 – Version Control & AWS Foundations
 
-### 🚀 Tech Stack
-* **Frontend**: React.js with Vite
-* **Backend Services**: Node.js & Express.js
-  * `product-service`
-  * `cart-service`
-  * `payment-service`
-  * `search-service`
-  * `email-service`
-* **Databases**: PostgreSQL (Amazon RDS), MongoDB, Amazon S3 (for Image Storage)
-* **Infrastructure**: Terraform, Kubernetes, AWS EKS, Ingress NGINX
-* **CI/CD & GitOps**: GitHub Actions, Argo CD
-* **Observability**: Prometheus & Grafana
+Objectives
 
----
+Initialize Git repository and define branching strategy.
+Structure project folders and naming conventions.
+Learn core AWS networking & compute services:
+EC2 (Virtual Servers)
+RDS (Managed Databases)
+S3 (Object Storage)
+ELB (Load Balancing)
+Manually provision AWS infrastructure to understand architecture flow.
+Deliverables
 
-## 💻 How to Run Locally (Docker Compose)
+Initialized GitHub repository
+Manual AWS environment deployed
+Basic architecture documentation
+Phase 2 – Infrastructure as Code (Terraform)
 
-For local development and testing, you can run the entire stack using Docker Compose.
+Objectives
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Mossab13/Microservices-E-Commerce-eks-project-demo.git
-   cd Microservices-E-Commerce-eks-project-demo
-   ```
+Learn Terraform state management, providers, and modules.
+Write modular Terraform code for:
+VPC
+EC2
+RDS
+S3
+ELB
+Configure remote backend for state storage.
+Validate full infra creation & destruction cycle.
+Deliverables
 
-2. **Set up your environment variables:**
-   Open the `docker-compose.yml` file and replace the placeholder values (like `YOUR_AWS_ACCESS_KEY_ID`, `YOUR_DB_ENDPOINT`, etc.) with your actual credentials if you want to test cloud features like S3 uploads. Otherwise, local testing works out of the box for most services.
+Automated AWS provisioning using Terraform
+Modular infrastructure codebase
+Reproducible infrastructure environment
+Phase 3 – Configuration Management (Ansible)
 
-3. **Start the containers:**
-   ```bash
-   docker-compose up --build
-   ```
+Objectives
 
-4. **Access the application:**
-   - Frontend is available at: `http://localhost:5173`
-   - Backend APIs are available on ports `5001` through `5005`.
+Learn Ansible playbooks, inventory, and roles.
+Integrate Terraform outputs with Ansible inventory.
+Automate EC2 configuration:
+Install Docker
+Install dependencies
+Configure base system settings
+Ensure idempotent configuration.
+Deliverables
 
----
+Automated server configuration
+Fully prepared EC2 environment for containers
+Phase 4 – Containerization (Docker)
 
-## 🔑 Default Admin Account
+Objectives
 
-When the database is initialized, a default Admin account is automatically seeded via the `email-service`. You can use this account to access the admin dashboard and manage products.
+Study Docker images, containers & multi-stage builds.
+Containerize microservices:
+Frontend
+Backend API
+Payment Service
+Search Service
+Implement Docker Compose for local orchestration.
+Validate inter-service communication.
+Deliverables
 
-* **Email:** `admin@example.com`
-* **Password:** `12345`
+Optimized Dockerfiles
+Working Docker Compose setup
+Validated microservices networking
+Phase 5 – Container Orchestration (Kubernetes)
 
-> **Note:** Make sure to change these credentials in a production environment!
+Objectives
 
----
+Deep dive into Kubernetes architecture.
+Deploy:
+Pods
+Deployments
+Services
+ConfigMaps & Secrets
+Implement Ingress configuration.
+Implement Horizontal Pod Autoscaler (HPA).
+Perform scaling validation under load.
+Deliverables
 
-## ☁️ Deployment to AWS (EKS)
+Fully deployed Kubernetes application
+Working autoscaling mechanism
+Secure configuration management
+Phase 6 – Routing & Reverse Proxy (Nginx)
 
-To deploy this project to the cloud, follow these steps:
+Objectives
 
-1. **Infrastructure Provisioning**:
-   Navigate to the `terraform/` directory, update your variables, and run:
-   ```bash
-   terraform init
-   terraform apply
-   ```
-2. **CI/CD Pipeline**:
-   Ensure your GitHub Repository Secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, etc.) are configured. Any push to the `main` branch will trigger the GitHub Actions workflow (`deploy.yml`) to build Docker images, push them to Amazon ECR, and update the Kubernetes manifests.
-3. **GitOps with Argo CD**:
-   Argo CD will automatically detect changes in the `kubernetes/` manifests directory and sync the deployments to your EKS cluster.
+Configure Nginx reverse proxy.
+Implement traffic routing & load balancing.
+Configure HTTPS (SSL).
+Optional: Deploy Nginx as Kubernetes Ingress Controller.
+Deliverables
+
+Stable public endpoint
+Secure traffic routing configuration
+Phase 7 – Continuous Integration & Deployment (Jenkins)
+
+Objectives
+
+Install and configure Jenkins.
+Write Declarative Jenkinsfile.
+Implement CI/CD stages:
+Code checkout
+Docker image build
+Push to registry
+Deploy to Kubernetes
+Implement rollback strategy.
+Test pipeline automation.
+Deliverables
+
+Fully automated CI/CD pipeline
+Auto-deployment to Kubernetes
+Rollback tested successfully
+Phase 8 – Monitoring & Observability (Prometheus & Grafana)
+
+Objectives
+
+Deploy Prometheus for metrics collection.
+Deploy Grafana dashboards.
+Monitor:
+Kubernetes cluster
+Application pods
+Nginx
+Configure alerting rules.
+Deliverables
+
+Real-time monitoring dashboards
+Active alerting system
+Full infrastructure visibility
+Phase 9 – Full Integration & Testing
+
+Objectives
+
+Integrate all components:
+Terraform → Infrastructure
+Ansible → Configuration
+Jenkins → Deployment
+Kubernetes → Orchestration
+Grafana → Monitoring
+Conduct load testing.
+Validate autoscaling.
+Simulate deployment failure and test rollback.
+Deliverables
+
+End-to-end validated system
+Load test report
+Rollback validation report
+Phase 10 – Buffer, Optimization & Documentation
+
+Objectives
+
+Fix bugs & optimize performance.
+Secure secrets & clean repository.
+Optimize Docker images & infra cost.
+Finalize documentation:
+Architecture diagram
+Deployment guide
+CI/CD explanation
+Monitoring explanation
+Deliverables
+
+Production-ready repository
+Clean & secure infrastructure
+Presentation-ready documentation
+✅ Final Outcome
+
+✔ Fully automated cloud-native E-Commerce deployment
+✔ Infrastructure as Code
+✔ CI/CD automation
+✔ Kubernetes auto-scaling
+✔ Monitoring & alerting
+✔ Secure production-ready DevOps architecture
