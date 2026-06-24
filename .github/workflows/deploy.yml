@@ -116,8 +116,7 @@ jobs:
       # ==========================================
       - name: Verify Deployment
         run: |
-          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
-          echo "Restarting deployment to pull latest image for ${{ matrix.service }}..."
+          aws eks update-kubeconfig --region us-east-1 --name ${{ secrets.EKS_CLUSTER_NAME }}          echo "Restarting deployment to pull latest image for ${{ matrix.service }}..."
           kubectl rollout restart deployment/${{ matrix.service }} -n ecom
           echo "Verifying deployment for ${{ matrix.service }}..."
           kubectl rollout status deployment/${{ matrix.service }} -n ecom --timeout=180s
