@@ -55,6 +55,17 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+
+        # ==========================================
+      # Create ECR Repository if it doesn't exist
+# ==========================================
+      - name: Create ECR Repository if it doesn't exist
+        run: |
+          aws ecr describe-repositories \
+            --repository-names ecomerrce2-${{ matrix.service }} \
+          || aws ecr create-repository \
+              --repository-name ecomerrce2-${{ matrix.service }}
+
       # ==========================================
       # 4. Run Tests (Stage 3)
       # ==========================================
