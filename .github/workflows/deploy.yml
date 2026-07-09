@@ -46,7 +46,6 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          # aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
       # ==========================================
@@ -55,6 +54,17 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+
+        # ==========================================
+      # Create ECR Repository if it doesn't exist
+# ==========================================
+      - name: Create ECR Repository if it doesn't exist
+        run: |
+          aws ecr describe-repositories \
+            --repository-names ecomerrce2-${{ matrix.service }} \
+          || aws ecr create-repository \
+              --repository-name ecomerrce2-${{ matrix.service }}
 
       # ==========================================
       # 4. Run Tests (Stage 3)
