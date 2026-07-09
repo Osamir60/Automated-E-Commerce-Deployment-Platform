@@ -37,10 +37,24 @@ output "eks_oidc_provider_arn" {
 }
 
 output "ecr_repository_urls" {
-  description = "Map of service name -> ECR repository URL"
-  value       = { for k, v in aws_ecr_repository.services : k => v.repository_url }
+description = "Map of service name -> ECR repository URL"
+value       = { for k, v in aws_ecr_repository.services : k => v.repository_url }
 }
 
 output "update_kubeconfig_command" {
   value = "aws eks update-kubeconfig --region ${var.aws_region} --name ${aws_eks_cluster.this.name}"
 }
+
+# ---------- RDS outputs (append to outputs.tf) ----------
+
+output "rds_endpoint" {
+  description = "Full RDS endpoint (host:port) — use the host part before ':' in DATABASE_URL"
+  value       = aws_db_instance.postgres.endpoint
+}
+
+output "rds_database_url" {
+  description = "Ready-to-use DATABASE_URL for kubernetes/secrets.yaml"
+  value       = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:5432/${var.db_name}"
+  sensitive   = true
+}
+

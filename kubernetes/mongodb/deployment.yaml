@@ -13,8 +13,6 @@ spec:
       labels:
         app: mongodb
     spec:
-      imagePullSecrets:
-        - name: ecr-cred
       containers:
         - name: mongodb
           image: mongo:latest

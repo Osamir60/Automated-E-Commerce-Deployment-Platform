@@ -13,11 +13,9 @@ spec:
       labels:
         app: frontend
     spec:
-      imagePullSecrets:
-        - name: ecr-cred
       containers:
         - name: frontend
-          image: <YOUR_AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ecomerrce2-frontend:latest
+          image: 461625527406.dkr.ecr.us-east-1.amazonaws.com/ecomerrce2-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5173

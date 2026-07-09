@@ -91,3 +91,31 @@ variable "node_max_size" {
   type        = number
   default     = 2
 }
+
+# ---------- RDS variables (append to variables.tf) ----------
+
+variable "db_instance_class" {
+  description = "RDS instance class"
+  type        = string
+  default     = "db.t3.micro"
+}
+
+variable "db_name" {
+  description = "Initial database name"
+  type        = string
+  default     = "ecom"
+}
+
+variable "db_username" {
+  description = "Master username for RDS"
+  type        = string
+  default     = "postgres"
+}
+
+variable "db_password" {
+  description = "Master password for RDS (matches kubernetes/secrets.yaml default — change both together if you update this)"
+  type        = string
+  default     = "admin123456"
+  sensitive   = true
+}
+

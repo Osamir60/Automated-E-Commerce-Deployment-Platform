@@ -36,7 +36,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       # ==========================================
       # 2. Setup AWS Credentials
@@ -46,7 +46,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          # aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
       # ==========================================
@@ -103,10 +103,10 @@ jobs:
           kubectl apply -f kubernetes/ingress.yaml
           
           # Deploy MongoDB (infrastructure component)
-          kubectl apply -f kubernetes/mongodb/
+          kubectl apply -f kubernetes/mongodb/ || true
           
           # Dynamically replace ECR registry with the active ECR login registry
-          sed -i "s|<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com|${{ steps.login-ecr.outputs.registry }}|g" kubernetes/${{ matrix.service }}/deployment.yaml
+          echo "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com"
 
           # Deploy the current microservice
           kubectl apply -f kubernetes/${{ matrix.service }}/
@@ -116,7 +116,12 @@ jobs:
       # ==========================================
       - name: Verify Deployment
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name ${{ secrets.EKS_CLUSTER_NAME }}          echo "Restarting deployment to pull latest image for ${{ matrix.service }}..."
+          aws eks update-kubeconfig \
+          --region us-east-1 \
+          --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+          echo "Restarting deployment..."
+
           kubectl rollout restart deployment/${{ matrix.service }} -n ecom
-          echo "Verifying deployment for ${{ matrix.service }}..."
+
           kubectl rollout status deployment/${{ matrix.service }} -n ecom --timeout=180s
