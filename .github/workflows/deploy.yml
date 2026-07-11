@@ -149,7 +149,7 @@ jobs:
             --exclude='./**/node_modules' \
             --exclude='./.git' \
             --exclude='./terraform/.terraform' \
-            -czf project-artifact.tar.gz .
+            -czf /tmp/project-artifact.tar.gz .
 
       - name: Upload project artifact
         uses: actions/upload-artifact@v4
