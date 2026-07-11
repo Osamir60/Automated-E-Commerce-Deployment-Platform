@@ -11,35 +11,34 @@ jobs:
   deploy:
     name: Build, Push and Deploy
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
-        service: [
-          "frontend",
-          "product-service",
-          "cart-service",
-          "search-service",
-          "payment-service",
-          "email-service"
-        ]
+        service:
+          - frontend
+          - product-service
+          - cart-service
+          - search-service
+          - payment-service
+          - email-service
 
     steps:
       # ==========================================
-      # 1. Pull Code (Stage 1)
+      # 1. Checkout Code
       # ==========================================
       - name: Checkout Code
         uses: actions/checkout@v4
 
       # ==========================================
-      # Setup Node.js for Testing
+      # Setup Node.js
       # ==========================================
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       # ==========================================
-      # 2. Setup AWS Credentials
+      # 2. Configure AWS Credentials
       # ==========================================
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -55,33 +54,32 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-
-        # ==========================================
+      # ==========================================
       # Create ECR Repository if it doesn't exist
-# ==========================================
+      # ==========================================
       - name: Create ECR Repository if it doesn't exist
         run: |
           aws ecr describe-repositories \
             --repository-names ecomerrce2-${{ matrix.service }} \
           || aws ecr create-repository \
-              --repository-name ecomerrce2-${{ matrix.service }}
+            --repository-name ecomerrce2-${{ matrix.service }}
 
       # ==========================================
-      # 4. Run Tests (Stage 3)
+      # 4. Run Tests
       # ==========================================
       - name: Run Tests
         run: |
           cd ${{ matrix.service }}
+
           if [ -f package.json ]; then
             npm install
-            # Run test and prevent pipeline failure if it is the placeholder exit 1 script
             npm run test || echo "⚠️ Tests finished with exit code or skipped."
           else
             echo "No package.json found. Skipping tests."
           fi
 
       # ==========================================
-      # 5. Build and Push Docker Image (Stage 2 & 4)
+      # 5. Build and Push Docker Image
       # ==========================================
       - name: Build and Push Docker Image to ECR
         env:
@@ -90,45 +88,45 @@ jobs:
           IMAGE_TAG: latest
         run: |
           echo "Building image for ${{ matrix.service }}..."
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./${{ matrix.service }}
+
+          docker build \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            ./${{ matrix.service }}
+
           echo "Pushing image to ECR..."
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+          docker push \
+            $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       # ==========================================
-      # 6. Deploy to Kubernetes (Stage 5)
+      # 6. Deploy to Kubernetes
       # ==========================================
       - name: Setup Kubeconfig and Deploy
         run: |
-          # Configure kubectl to use the EKS cluster
-          aws eks update-kubeconfig --region us-east-1 --name ${{ secrets.EKS_CLUSTER_NAME }}          
-          # Create Namespace if not exists
+          aws eks update-kubeconfig \
+            --region us-east-1 \
+            --name ${{ secrets.EKS_CLUSTER_NAME }}
+
           kubectl apply -f kubernetes/namespace.yaml
-          
-          # Apply Secrets (applied only if exists, typically applied manually once)
+
           if [ -f kubernetes/secrets.yaml ]; then
             kubectl apply -f kubernetes/secrets.yaml
           fi
-          
-          # Apply Ingress configuration
-          kubectl apply -f kubernetes/ingress.yaml
-          
-          # Deploy MongoDB (infrastructure component)
-          kubectl apply -f kubernetes/mongodb/ || true
-          
-          # Dynamically replace ECR registry with the active ECR login registry
-          echo "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com"
 
-          # Deploy the current microservice
+          kubectl apply -f kubernetes/ingress.yaml
+
+          kubectl apply -f kubernetes/mongodb/ || true
+
           kubectl apply -f kubernetes/${{ matrix.service }}/
 
       # ==========================================
-      # 7. Verify Deployment (Stage 6)
+      # 7. Verify Deployment
       # ==========================================
       - name: Verify Deployment
         run: |
           aws eks update-kubeconfig \
-          --region us-east-1 \
-          --name ${{ secrets.EKS_CLUSTER_NAME }}
+            --region us-east-1 \
+            --name ${{ secrets.EKS_CLUSTER_NAME }}
 
           echo "Restarting deployment..."
 
