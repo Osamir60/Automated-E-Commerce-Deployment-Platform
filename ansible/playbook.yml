@@ -1,0 +1,90 @@
+---
+# playbook.yml
+# Runs entirely LOCALLY — no AWS/EC2 involved at all.
+# Prepares your own machine (Docker) and starts the project with
+# Docker Compose, using the project files that already sit next to
+# this ansible/ folder.
+#
+# Assumes a Debian/Ubuntu-based Linux (native Ubuntu, or WSL2 Ubuntu on
+# Windows). If you're on a different OS tell me and I'll adjust the
+# package-install tasks.
+#
+# Run with:
+#   ansible-playbook -i inventory.ini playbook.yml --ask-become-pass
+
+- name: Prepare local machine (Docker) and run the project via Docker Compose
+  hosts: app_server
+  become: yes
+
+  vars:
+    # The project root is one level above this ansible/ folder — no
+    # cloning or copying needed, it's already right here.
+    project_dir: "{{ playbook_dir }}/.."
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install base packages
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+
+    - name: Create /etc/apt/keyrings directory
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Add Docker's official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker apt repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Install Docker Engine + Compose plugin
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker service is running and enabled on boot
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add current user to the docker group
+      user:
+        name: "{{ ansible_user_id }}"
+        groups: docker
+        append: yes
+
+    - name: Start the app with Docker Compose (run as root to avoid needing a new login session for the docker group change)
+      command: docker compose up -d --build
+      args:
+        chdir: "{{ project_dir }}"
+
+    - name: Show running containers
+      command: docker compose ps
+      args:
+        chdir: "{{ project_dir }}"
+      register: compose_ps
+      changed_when: false
+
+    - name: Print running containers
+      debug:
+        msg: "{{ compose_ps.stdout_lines }}"
