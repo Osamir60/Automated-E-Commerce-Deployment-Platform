@@ -135,3 +135,27 @@ jobs:
           kubectl rollout restart deployment/${{ matrix.service }} -n ecom
 
           kubectl rollout status deployment/${{ matrix.service }} -n ecom --timeout=180s
+
+  create-artifact:
+    name: Package Project Artifact
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Package project artifact
+        run: |
+          tar \
+            --exclude='./**/node_modules' \
+            --exclude='./.git' \
+            --exclude='./terraform/.terraform' \
+            -czf project-artifact.tar.gz .
+
+      - name: Upload project artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-artifact-${{ github.sha }}
+          path: project-artifact.tar.gz
+          retention-days: 7
