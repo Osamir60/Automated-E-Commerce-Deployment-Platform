@@ -155,5 +155,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: project-artifact-${{ github.sha }}
-          path: project-artifact.tar.gz
+          path: /tmp/project-artifact.tar.gz
           retention-days: 7
